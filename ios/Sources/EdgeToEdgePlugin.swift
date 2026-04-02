@@ -153,12 +153,8 @@ class EdgeToEdgePlugin: Plugin, UIScrollViewDelegate {
         ) { [weak self, weak webview] _ in
             guard let self = self, let wv = webview else { return }
             
-            // 延迟注入，确保 Safe Area Insets 已更新且动画接近完成
-            // 转屏动画通常持续 0.3s - 0.4s
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                NSLog("[EdgeToEdge] Orientation changed, re-injecting safe area")
-                self.injectSafeAreaInsets(webview: wv, keyboardHeight: self.keyboardHeight, keyboardVisible: self.isKeyboardVisible)
-            }
+            NSLog("[EdgeToEdge] Orientation changed, re-injecting safe area")
+            self.injectSafeAreaInsets(webview: wv, keyboardHeight: self.keyboardHeight, keyboardVisible: self.isKeyboardVisible)
         }
 
         NSLog("[EdgeToEdge] Rotation observers registered")
