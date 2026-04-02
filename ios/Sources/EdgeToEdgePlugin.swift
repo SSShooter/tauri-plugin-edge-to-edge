@@ -36,6 +36,9 @@ class EdgeToEdgePlugin: Plugin, UIScrollViewDelegate {
         // 周期性注入安全区域（覆盖页面加载过程）
         startPeriodicInjection(webview: webview)
         
+        // 注册转屏监听
+        registerRotationObservers(webview: webview)
+        
         NSLog("[EdgeToEdge] Plugin loaded successfully (Capacitor Keyboard style)")
     }
     
@@ -135,6 +138,30 @@ class EdgeToEdgePlugin: Plugin, UIScrollViewDelegate {
         }
         
         NSLog("[EdgeToEdge] Keyboard observers registered (Capacitor Keyboard official approach)")
+    }
+    
+    // MARK: - Rotation Observers
+    
+    private func registerRotationObservers(webview: WKWebView) {
+        let nc = NotificationCenter.default
+        
+        // 监听设备转屏
+        nc.addObserver(
+            forName: UIDevice.orientationDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self, weak webview] _ in
+            guard let self = self, let wv = webview else { return }
+            
+            // 延迟注入，确保 Safe Area Insets 已更新且动画接近完成
+            // 转屏动画通常持续 0.3s - 0.4s
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                NSLog("[EdgeToEdge] Orientation changed, re-injecting safe area")
+                self.injectSafeAreaInsets(webview: wv, keyboardHeight: self.keyboardHeight, keyboardVisible: self.isKeyboardVisible)
+            }
+        }
+
+        NSLog("[EdgeToEdge] Rotation observers registered")
     }
     
     /// 重置 ScrollView（借鉴 Capacitor Keyboard 插件的 resetScrollView）
